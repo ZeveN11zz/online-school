@@ -1,12 +1,14 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils import timezone
 from django.utils.html import html_safe
 from django.utils.safestring import SafeString
+from django.utils.translation import ngettext
 
 from shop.models import *
 
 
 # Register your models here.
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -31,7 +33,37 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_display = ['category', 'name', 'price', 'in_sale']
     list_filter = ['category', 'in_sale']
+    list_editable = ['price', 'in_sale']
     save_as = True
+    actions = ['sale_products', 'withdraw_products']
+
+    @admin.action(description="Снять с продажи")
+    def withdraw_products(self, request, queryset):
+        updated = queryset.update(in_sale=False)
+        self.message_user(
+            request,
+            ngettext(
+                "%d товар снят с продажи.",
+                "%d товаров снято с продажи.",
+                updated,
+            )
+            % updated,
+            messages.SUCCESS,
+        )
+
+    @admin.action(description="Выложить в продажу")
+    def sale_products(self, request, queryset):
+        updated = queryset.update(in_sale=True)
+        self.message_user(
+            request,
+            ngettext(
+                "%d товар выставлен на продажу.",
+                "%d товаров выставлено на продажу.",
+                updated,
+            )
+            % updated,
+            messages.SUCCESS,
+        )
 
 
 class CartContentAdmin(admin.TabularInline):
@@ -49,10 +81,9 @@ class CartAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    search_fields = ['cost', 'order_date']
+    search_fields = ['cost', 'customer__username', 'customer__first_name', 'customer__last_name']
     readonly_fields = ['order_date', 'cost', 'payment_date', 'customer', 'pretty_items']
     list_display = ['order_date', 'cost']
-    # fields = ['cost', 'payment_date', 'order_date', 'customer']
     fieldsets = [
         (
             None,

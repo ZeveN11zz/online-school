@@ -1,3 +1,7 @@
+import os.path
+import sys
+import uuid
+
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
@@ -35,6 +39,10 @@ class ProductProperty(models.Model):
         verbose_name_plural = 'Характеристики товаров'
 
 
+def image_file_path_generator(instance, filename):
+    return f'products/{instance.pk}.{filename.split(os.path.extsep)[-1].lower()}'
+
+
 class Product(models.Model):
     name = models.CharField(max_length=300, verbose_name='Наименование')
     slug = models.SlugField(db_index=True, max_length=50, unique=True)
@@ -42,6 +50,8 @@ class Product(models.Model):
     description = models.TextField(verbose_name='Описание', blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', default=0)
     in_sale = models.BooleanField(default=False, verbose_name='В продаже')
+    image = models.ImageField(verbose_name='Изображение',
+                              upload_to=image_file_path_generator, blank=True, null=True)
     properties = models.ManyToManyField(ProductProperty, verbose_name='Характеристики', through='PropertyValue')
 
     def __str__(self):
@@ -94,8 +104,8 @@ class Cart(models.Model):
 
 
 class CartContent(models.Model):
-    cart = models.ForeignKey(Cart, verbose_name='Состав корзины', on_delete=models.RESTRICT)
-    product = models.ForeignKey(Product, verbose_name='Товар', on_delete=models.RESTRICT)
+    cart = models.ForeignKey(Cart, verbose_name='Состав корзины', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, verbose_name='Товар', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='Количество')
 
     def __str__(self):

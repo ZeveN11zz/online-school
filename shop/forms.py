@@ -33,4 +33,4 @@ class RegisterForm(ModelForm):
 class DisputeForm(ModelForm):
     class Meta:
         model = Dispute
-        fields = ['order', 'dispute_text']
+        fields = ['dispute_text']

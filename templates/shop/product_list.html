@@ -5,8 +5,13 @@
 {% block content %}
     {% if object_list.count %}
         <div class="card">
-            {% for product in object_list %}
-                <div><a href="{% url 'product' product.slug %}">{{ product.name }}</a></div>
+            {% for item in object_list %}
+                <div>
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" title="{{ item.name }}">
+                    {% endif %}
+                    <a href="{% url 'product' item.slug %}">{{ item.name }}</a>
+                </div>
             {% endfor %}
         </div>
     {% else %}

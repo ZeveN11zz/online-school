@@ -2,6 +2,11 @@
 
 {% block content %}
     <p>{{ object.name }}</p>
+    {% if object.image %}
+        <img src="{{ object.image.url }}">
+    {% else %}
+        Изображение отсутствует
+    {% endif %}
     <table>
     <tr>
         <td>Описание</td>

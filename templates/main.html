@@ -21,6 +21,9 @@
 <h1>{% block title %}{% endblock %}</h1>
 <div id="content">
     {% block content %}{% endblock %}
+    {% if is_paginated %}
+        {% include 'pagination.html' with page=page %}
+    {% endif %}
 </div>
 </body>
 </html>

@@ -22,7 +22,7 @@
         </tr>
         </tbody>
     </table>
-    {% if not object.dispute or not object.dispute.decision %}
+    {% if not object.dispute %}
     <form method="get" action="{% url 'dispute_create' object.pk %}">
         <input type="submit" value="Подать рекламацию">
     </form>

@@ -1,4 +1,4 @@
-from django.contrib.auth import logout, authenticate
+from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LogoutView, LoginView
 from django.core.serializers import serialize
@@ -21,15 +21,18 @@ class RegisterView(CreateView):
     def get_success_url(self):
         return reverse('index')
 
-    # def form_valid(self, form):
-    #     result = super().form_valid(form)
-    #     self.request.user = authenticate(
-    #         self.request, username=form.instance.username, password=form.cleaned_data['password1'])
-    #     return result
+    def form_valid(self, form):
+        result = super().form_valid(form)
+        # new_user = authenticate(
+        #     self.request, username=form.cleaned_data['email'], password=form.cleaned_data['password1'])
+        # login(self.request, new_user)
+        login(self.request, self.object)
+        return result
 
 
 class IndexView(ListView):
     model = Product
+    paginate_by = 6
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -106,7 +109,7 @@ class EditCartView(LoginRequiredMixin, UpdateView):
         return HttpResponseRedirect(redirect_to=reverse('cart'))
 
 
-class PaymentView(TemplateView):
+class PaymentView(LoginRequiredMixin, TemplateView):
     model = Order
     template_name = 'shop/payment_success.html'
 
@@ -131,6 +134,9 @@ class PaymentView(TemplateView):
 class OrdersView(LoginRequiredMixin, ListView):
     model = Order
 
+    def get_queryset(self):
+        return super().get_queryset().filter(customer=self.request.user)
+
 
 class OrderDetailView(LoginRequiredMixin, DetailView):
     model = Order
@@ -143,6 +149,9 @@ class ReclamationView(LoginRequiredMixin, ListView):
     model = Order
     paginate_by = 10
 
+    def get_queryset(self):
+        return super().get_queryset().filter(order__customer=self.request.user)
+
 
 class DisputeCreateView(LoginRequiredMixin, CreateView):
     model = Dispute
@@ -150,7 +159,7 @@ class DisputeCreateView(LoginRequiredMixin, CreateView):
 
     def get_initial(self):
         initials = super().get_initial()
-        initials['order'] = Order.objects.get(pk=self.kwargs['order'])
+        initials['order'] = Order.objects.get(pk=self.kwargs['order'], customer=self.request.user)
         return initials
 
     def get_success_url(self):
@@ -161,6 +170,12 @@ class DisputeUpdateView(LoginRequiredMixin, UpdateView):
     model = Dispute
     form_class = DisputeForm
 
+    def get_queryset(self):
+        return super().get_queryset().filter(order__customer=self.request.user)
+
 
 class DisputeDetailView(LoginRequiredMixin, DetailView):
     model = Dispute
+
+    def get_queryset(self):
+        return super().get_queryset().filter(order__customer=self.request.user)
