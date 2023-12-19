@@ -1,7 +1,5 @@
-from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LogoutView, LoginView
-from django.core.serializers import serialize
 from django.db.models import F, Sum
 from django.http import HttpResponseRedirect
 from django.utils import timezone
