@@ -1,0 +1,13 @@
+{% extends 'main.html' %}
+
+{% block title %}Подача рекламации{% endblock %}
+
+{% block content %}
+    <form method="post">
+    {% csrf_token %}
+    <table>
+    {{ form.as_table }}
+    </table>
+    <input type="submit" value="Отправить">
+    </form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    <p>{{ object.name }}</p>
+    <table>
+    <tr>
+        <td>Описание</td>
+        <td><pre>{{ object.description }}</pre></td>
+    </tr>
+    {% for property in object.propertyvalue_set.iterator %}
+        <tr><td>{{ property.property.name }}</td><td>{{ property.value }}</td></tr>
+    {% endfor %}
+    <tr>
+        <td>Цена</td>
+        <td>{{ object.price }}</td>
+    </tr>
+    </table>
+    <form action="{% url 'add_to_cart' object.slug %}" method="post">
+        {% csrf_token %}
+        <button type="submit" name="submit" value="add">Добавить в корзину</button>
+    </form>
+{% endblock %}

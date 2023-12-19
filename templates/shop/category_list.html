@@ -1,0 +1,11 @@
+{% extends 'main.html' %}
+
+{% block title %}Категории товаров{% endblock %}
+
+{% block content %}
+    {% for item in object_list %}
+        <p><a href="{% url 'category' item.slug %}">{{ item.name }}</a></p>
+    {% empty %}
+        <p>Список категорий пуст</p>
+    {% endfor %}
+{% endblock %}

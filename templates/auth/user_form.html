@@ -1,0 +1,13 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    <h2>Регистрация</h2>
+    <p>Введите свои регистрационные данные:</p>
+    <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        <table>
+        {{ form.as_table }}
+        </table>
+        <input type="submit" value="Зарегистрироваться">
+    </form>
+{% endblock %}

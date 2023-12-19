@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+
+{% block title %}Информация по рекламации{% endblock %}
+
+{% block content %}
+    <p>Информация о заказе: <a href="{% url 'order' object.order.pk %}">{{ object.order }}</a></p>
+    <p>Текст сообщения:</p>
+    <pre>{{ object.dispute_text }}</pre>
+    <p>Статус рассмотрения:</p>
+    {% if not object.decision %}
+    <p>Ожидает решения</p>
+    {% else %}
+    <p>Принято решение: {{ object.decision.choice }}</p>
+    <p>{{ object.decision_text }}</p>
+    {% endif %}
+{% endblock %}

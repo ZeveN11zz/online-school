@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Магазинище</title>
+</head>
+<body>
+<nav id="navbar">
+    <ul>
+        <li><a href="{% url 'index' %}">Главная</a></li>
+        <li><a href="{% url 'catalogue' %}">Каталог</a></li>
+        {% if user.cart %}<li><a href="{% url 'cart' %}">Корзина</a></li>{% endif %}
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'orders' %}">История заказов</a></li>
+            <li><form method="post" action="{% url 'logout' %}">{% csrf_token %}<input type="submit" value="Выход"></form></li>
+        {% else %}
+            <li><form method="get" action="{% url 'login' %}"><input type="submit" value="Авторизация"></form></li>
+        {% endif %}
+    </ul>
+</nav>
+<h1>{% block title %}{% endblock %}</h1>
+<div id="content">
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>

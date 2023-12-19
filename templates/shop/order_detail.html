@@ -1,0 +1,33 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    <p>{{ object }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена за ед.</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in object.items %}
+            <tr>
+                <td>{{ item.name }}<div>{{ item.properties|join:', ' }}</div></td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+            </tr>
+        {% endfor %}
+        <tr>
+        </tr>
+        </tbody>
+    </table>
+    {% if not object.dispute or not object.dispute.decision %}
+    <form method="get" action="{% url 'dispute_create' object.pk %}">
+        <input type="submit" value="Подать рекламацию">
+    </form>
+    {% endif %}
+    {% if object.dispute %}
+        <a href="{{ object.dispute.get_absolute_url }}">Подана рекламация</a>
+    {% endif %}
+{% endblock %}

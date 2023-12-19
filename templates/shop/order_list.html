@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+
+{% block title %}История заказов{% endblock %}
+
+{% block content %}
+    {% for item in object_list %}
+        <p>
+            <a href="{% url 'order' item.pk %}">{{ item }}</a>
+            {% if item.dispute %} 
+                <a href="{{ item.dispute.get_absolute_url }}"><span>Рекламация</span></a>
+            {% endif %}
+        </p>
+    {% empty %}
+        <p>Заказов ещё не было</p>
+    {% endfor %}
+{% endblock %}

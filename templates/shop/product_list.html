@@ -1,0 +1,15 @@
+{% extends 'main.html' %}
+
+{% block title %}Товары в наличии{% endblock %}
+
+{% block content %}
+    {% if object_list.count %}
+        <div class="card">
+            {% for product in object_list %}
+                <div><a href="{% url 'product' product.slug %}">{{ product.name }}</a></div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <span>Товары отсутствуют</span>
+    {% endif %}
+{% endblock %}
