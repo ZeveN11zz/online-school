@@ -155,10 +155,9 @@ class DisputeCreateView(LoginRequiredMixin, CreateView):
     model = Dispute
     form_class = DisputeForm
 
-    def get_initial(self):
-        initials = super().get_initial()
-        initials['order'] = Order.objects.get(pk=self.kwargs['order'], customer=self.request.user)
-        return initials
+    def form_valid(self, form):
+        form.instance.order = Order.objects.get(pk=self.kwargs['order'], customer=self.request.user)
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('order', kwargs={'pk': self.kwargs['order']})
