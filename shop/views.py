@@ -1,7 +1,8 @@
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import F, Sum
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, TemplateView, UpdateView, CreateView
 
@@ -28,42 +29,17 @@ class RegisterView(CreateView):
         return result
 
 
-class IndexView(ListView):
-    model = Product
-    paginate_by = 6
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        category = self.kwargs.get('pk')
-        if category:
-            queryset = queryset.filter(category=category)
-        return queryset.filter(in_sale=True).distinct()
-
-
-class CatalogueView(ListView):
-    model = Category
-    paginate_by = 6
-
-
 class ProductListView(ListView):
     model = Product
     paginate_by = 6
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        category = self.kwargs.get('slug')
-        if category:
-            queryset = queryset.filter(category__slug=category)
         return queryset.filter(in_sale=True).distinct()
 
 
 class ProductDetailView(DetailView):
     model = Product
-
-
-class CategoryListView(ListView):
-    model = Category
-    paginate_by = 6
 
 
 class CartView(LoginRequiredMixin, TemplateView):
@@ -77,13 +53,10 @@ class CartView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         obj = self.get_object()
         context['object'] = obj
-        context['total'] = obj.cartcontent_set.aggregate(total=Sum(F('quantity')*F('product__price')))['total']
+        context['total'] = obj.cartcontent_set.aggregate(total=Sum(F('product__price')))['total']
         return context
 
     def post(self, request, *args, **kwargs):
-        obj = self.get_object()
-        obj.cartcontent_set.filter(product__slug=kwargs['slug']).update(quantity=request.POST.get('quantity', 0))
-        obj.cartcontent_set.filter(quantity=0).delete()
         return HttpResponseRedirect(redirect_to=request.META.get('HTTP_REFERER'))
 
 
@@ -93,12 +66,7 @@ class EditCartView(LoginRequiredMixin, UpdateView):
         cart, _ = Cart.objects.get_or_create(customer=self.request.user)
         submit = request.POST.get('submit')
         if submit == 'add':
-            cart_content, _ = cart.cartcontent_set.get_or_create(product=product, defaults={'quantity': 0})
-            cart_content.quantity += 1
-            cart_content.save()
-        if submit == 'update':
-            cart_content, _ = cart.cartcontent_set.get_or_create(product=product, defaults={'quantity': 0})
-            cart_content.quantity = int(request.POST.get('quantity', 0))
+            cart_content, _ = cart.cartcontent_set.get_or_create(product=product)
             cart_content.save()
         elif submit == 'remove':
             cart.cartcontent_set.filter(product=product).delete()
@@ -118,7 +86,7 @@ class PaymentView(LoginRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         cart = Cart.objects.get(customer=request.user)
-        cost = cart.cartcontent_set.aggregate(total=Sum(F('quantity')*F('product__price')))['total']
+        cost = cart.cartcontent_set.aggregate(total=Sum(F('product__price')))['total']
         content_dict = []
         for cart_content in cart.cartcontent_set.iterator():
             content_dict.append(cart_content.as_dict())
@@ -176,3 +144,67 @@ class DisputeDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return super().get_queryset().filter(order__customer=self.request.user)
+
+
+class LogoutView(LoginRequiredMixin, TemplateView):
+    template_name = 'logout.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = '?next=' + self.request.META.get('HTTP_REFERER')
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('logout'):
+            logout(self.request)
+            if not request.GET.get('next'):
+                return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(request.GET.get('next'))
+
+
+class ScheduleList(ListView):
+    model = Schedule
+
+    def get_queryset(self):
+        return super().get_queryset().filter(assigned_to__isnull=True, date__gte=timezone.now().date())
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(object_list=object_list, **kwargs)
+        if self.request.user.is_authenticated:
+            context['active_bookings'] = self.model.objects.filter(
+                date__gte=timezone.now().date(),
+                assigned_to=self.request.user
+            )
+        return context
+
+
+class ScheduleBookingView(LoginRequiredMixin, TemplateView):
+    template_name = 'schedule_confirmation.html'
+    success_template_name = 'schedule_booking_success.html'
+
+    def get_object(self) -> Schedule | None:
+        return get_object_or_404(
+            Schedule,
+            pk=self.kwargs['pk'],
+            assigned_to__isnull=True,
+            date__gte=timezone.now().date()
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        schedule = self.get_object()
+        context['schedule'] = schedule
+        return context
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        if request.POST.get('booking'):
+            if context['schedule']:
+                context['schedule'].assigned_to = self.request.user
+                context['schedule'].save()
+                return HttpResponse(
+                    render(
+                        request=request, template_name=self.success_template_name, context=context
+                    )
+                )
+        return HttpResponseRedirect(reverse('schedule_booking', kwargs={'pk': self.kwargs['pk']}))

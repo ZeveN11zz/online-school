@@ -1,0 +1,12 @@
+{% extends 'main.html' %}
+
+{% block title %}Уверены, что хотите выйти из системы?{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <form method="post" action="{{ action }}">
+    {% csrf_token %}
+    <button type="submit" name="logout" value="logout">Да</button>
+    <button type="submit">Отмена</button>
+    </form>
+{% endblock %}

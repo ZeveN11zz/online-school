@@ -1,6 +1,5 @@
 from django.contrib import admin, messages
 from django.utils import timezone
-from django.utils.html import html_safe
 from django.utils.safestring import SafeString
 from django.utils.translation import ngettext
 
@@ -10,29 +9,12 @@ from shop.models import *
 # Register your models here.
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ['name']}
-
-
-@admin.register(ProductProperty)
-class ProductPropertyAdmin(admin.ModelAdmin):
-    pass
-
-
-class PropertyValueAdmin(admin.TabularInline):
-    model = PropertyValue
-    extra = 0
-    min_num = 1
-
-
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [PropertyValueAdmin]
     prepopulated_fields = {'slug': ['name']}
     search_fields = ['name']
-    list_display = ['category', 'name', 'price', 'in_sale']
-    list_filter = ['category', 'in_sale']
+    list_display = ['name', 'price', 'in_sale']
+    list_filter = ['in_sale']
     list_editable = ['price', 'in_sale']
     save_as = True
     actions = ['sale_products', 'withdraw_products']
@@ -51,7 +33,7 @@ class ProductAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
-    @admin.action(description="Выложить в продажу")
+    @admin.action(description="В продажу")
     def sale_products(self, request, queryset):
         updated = queryset.update(in_sale=True)
         self.message_user(
@@ -109,7 +91,7 @@ class OrderAdmin(admin.ModelAdmin):
         for item in obj.items:
             properties = item['properties']
             result.append(
-                f'{item["category"]}: {item["name"]} ({", ".join(properties)}), '
+                f'{item["name"]} ({", ".join(properties)}), '
                 f'Цена: {item["price"]}, Кол-во: {item["quantity"]}'
             )
         return SafeString('<pre>{}</pre>'.format('\n'.join(result)))
@@ -140,3 +122,10 @@ class DisputeAdmin(admin.ModelAdmin):
             else:
                 form.instance.decision_date = None
         return super().save_form(request, form, change)
+
+
+@admin.register(Schedule)
+class ScheduleAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'assigned_to']
+    list_display_links = ['__str__']
+    readonly_fields = ['assigned_to']

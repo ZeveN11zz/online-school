@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
 from django.db import IntegrityError
-from django.forms import ModelForm, widgets, fields
+from django.forms import ModelForm, widgets, fields, Form
 from django.forms.utils import ErrorList
 
 from shop.models import Dispute

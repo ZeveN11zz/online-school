@@ -1,0 +1,10 @@
+{% extends 'main.html' %}
+
+{% block content %}
+{{ block.super }}
+<form method="post" action="{{ action }}">
+    {% for field in form.fields %}
+        {{ field.as_table }}
+    {% endfor %}
+</form>
+{% endblock %}

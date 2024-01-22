@@ -6,15 +6,13 @@
         <thead>
             <tr>
                 <th>Товар</th>
-                <th>Количество</th>
-                <th>Цена за ед.</th>
+                <th>Цена</th>
             </tr>
         </thead>
         <tbody>
         {% for item in object.items %}
             <tr>
-                <td>{{ item.name }}<div>{{ item.properties|join:', ' }}</div></td>
-                <td>{{ item.quantity }}</td>
+                <td>{{ item.name }}</td>
                 <td>{{ item.price }}</td>
             </tr>
         {% endfor %}

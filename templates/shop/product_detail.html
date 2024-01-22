@@ -1,9 +1,10 @@
 {% extends 'main.html' %}
 
+{% block title %}{{ object.name }}{% endblock %}
+
 {% block content %}
-    <p>{{ object.name }}</p>
     {% if object.image %}
-        <img src="{{ object.image.url }}">
+        <img class="product__image" src="{{ object.image.url }}">
     {% else %}
         Изображение отсутствует
     {% endif %}
@@ -12,9 +13,6 @@
         <td>Описание</td>
         <td><pre>{{ object.description }}</pre></td>
     </tr>
-    {% for property in object.propertyvalue_set.iterator %}
-        <tr><td>{{ property.property.name }}</td><td>{{ property.value }}</td></tr>
-    {% endfor %}
     <tr>
         <td>Цена</td>
         <td>{{ object.price }}</td>

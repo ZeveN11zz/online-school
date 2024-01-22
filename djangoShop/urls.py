@@ -17,16 +17,15 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.views import LoginView
 from django.urls import path, include
 
 from shop import views
 
 urlpatterns = [
-    path("", views.IndexView.as_view(), name="index"),
-    path("catalogue/", views.CatalogueView.as_view(), name="catalogue"),
-    path("catalogue/<slug:slug>/", views.ProductListView.as_view(), name="category"),
-    path("products/<slug:slug>/", views.ProductDetailView.as_view(), name="product"),
-    path("products/<slug:slug>/add/", views.EditCartView.as_view(), name="add_to_cart"),
+    path("", views.ProductListView.as_view(), name="index"),
+    path("course/<slug:slug>/", views.ProductDetailView.as_view(), name="product"),
+    path("course/<slug:slug>/add/", views.EditCartView.as_view(), name="add_to_cart"),
     path("orders/", views.OrdersView.as_view(), name="orders"),
     path("orders/<int:pk>/", views.OrderDetailView.as_view(), name="order"),
     path("reclamation/", views.ReclamationView.as_view(), name="reclamation"),
@@ -36,8 +35,11 @@ urlpatterns = [
     path("register/", views.RegisterView.as_view(), name="register"),
     path("orders/<int:order>/dispute/", views.DisputeCreateView.as_view(), name="dispute_create"),
     path("dispute/<int:pk>/update/", views.DisputeUpdateView.as_view(), name="dispute_update"),
-    path("dispute/<int:pk>/", views.DisputeDetailView.as_view(), name="dispute_detail")
+    path("dispute/<int:pk>/", views.DisputeDetailView.as_view(), name="dispute_detail"),
+    path("schedule/", views.ScheduleList.as_view(), name="schedule_list"),
+    path("schedule/<int:pk>/", views.ScheduleBookingView.as_view(), name="schedule_booking"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("logout/", views.LogoutView.as_view(), name="logout"),
 ] + [
     path('admin/', admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

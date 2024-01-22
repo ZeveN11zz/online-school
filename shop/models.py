@@ -1,6 +1,4 @@
 import os.path
-import sys
-import uuid
 
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,34 +9,6 @@ from django.urls import reverse
 # Create your models here.
 
 
-class Category(models.Model):
-    name = models.CharField(max_length=300, verbose_name='Категория', unique=True)
-    slug = models.SlugField(db_index=True, max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('category', kwargs={'slug': self.slug})
-
-    class Meta:
-        ordering = ['name']
-        verbose_name = 'Категория товаров'
-        verbose_name_plural = 'Категории товаров'
-
-
-class ProductProperty(models.Model):
-    name = models.CharField(max_length=200, verbose_name='Наименование', unique=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['name']
-        verbose_name = 'Характеристика товара'
-        verbose_name_plural = 'Характеристики товаров'
-
-
 def image_file_path_generator(instance, filename):
     return f'products/{instance.pk}.{filename.split(os.path.extsep)[-1].lower()}'
 
@@ -46,25 +16,21 @@ def image_file_path_generator(instance, filename):
 class Product(models.Model):
     name = models.CharField(max_length=300, verbose_name='Наименование')
     slug = models.SlugField(db_index=True, max_length=50, unique=True)
-    category = models.ForeignKey(Category, verbose_name='Категория товара', on_delete=models.RESTRICT)
     description = models.TextField(verbose_name='Описание', blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', default=0)
     in_sale = models.BooleanField(default=False, verbose_name='В продаже')
     image = models.ImageField(verbose_name='Изображение',
                               upload_to=image_file_path_generator, blank=True, null=True)
-    properties = models.ManyToManyField(ProductProperty, verbose_name='Характеристики', through='PropertyValue')
 
     def __str__(self):
-        return f'{self.category.name}: {self.name}'
+        return self.name
 
     def as_dict(self):
         return {
             'id': self.pk,
             'name': self.name,
-            'category': self.category.name,
             'price': self.price,
             'in_sale': self.in_sale,
-            'properties': [f'{_.property.name}: {_.value}' for _ in self.propertyvalue_set.all()]
         }
 
     def get_absolute_url(self):
@@ -74,21 +40,6 @@ class Product(models.Model):
         ordering = ['pk']
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
-
-
-class PropertyValue(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.RESTRICT)
-    property = models.ForeignKey(ProductProperty, on_delete=models.RESTRICT, verbose_name='Характеристика')
-    value = models.CharField(max_length=200, verbose_name='Значение')
-
-    def as_dict(self):
-        return {self.property.name: self.value}
-
-    class Meta:
-        ordering = ['property__name']
-        unique_together = ('product', 'property')
-        verbose_name = 'Характеристика товара'
-        verbose_name_plural = 'Характеристики товара'
 
 
 class Cart(models.Model):
@@ -106,13 +57,12 @@ class Cart(models.Model):
 class CartContent(models.Model):
     cart = models.ForeignKey(Cart, verbose_name='Состав корзины', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, verbose_name='Товар', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(verbose_name='Количество')
 
     def __str__(self):
         return f'{self.product}'
 
     def as_dict(self):
-        return self.product.as_dict() | {'quantity': self.quantity}
+        return self.product.as_dict()
 
     class Meta:
         verbose_name = 'Товар'
@@ -167,3 +117,19 @@ class Dispute(models.Model):
         verbose_name = 'Рекламация'
         verbose_name_plural = 'Рекламации'
         ordering = ['created_at']
+
+
+class Schedule(models.Model):
+    date = models.DateField(verbose_name='Дата')
+    start_time = models.TimeField(verbose_name="Время начала")
+    end_time = models.TimeField(verbose_name="Время окончания")
+    assigned_to = models.ForeignKey(User, verbose_name='Клиент', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return (f"{self.date.strftime('%d.%m.%Y')} "
+                f"{self.start_time.strftime('%H:%M')} - {self.end_time.strftime('%H:%M')}")
+
+    class Meta:
+        verbose_name = 'Расписание'
+        verbose_name_plural = 'Расписание'
+        ordering = ['-date', '-start_time']

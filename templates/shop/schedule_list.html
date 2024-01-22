@@ -1,0 +1,51 @@
+{% extends 'main.html' %}
+
+{% block title %}Расписание{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+    <h2>Активные брони</h2>
+    {% if active_bookings %}
+    <table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Время</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in active_bookings.iterator %}
+        <tr>
+            <td>{{ item.date }}</td>
+            <td>{{ item.start_time }} - {{ item.end_time }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    {% else %}
+        <p>Отсутствуют...</p>
+    {% endif %}
+{% endif %}
+    <h2>Доступное для бронирования</h2>
+    {% if object_list %}
+    <table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Время</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in object_list.iterator %}
+        <tr>
+            <td>{{ item.date }}</td>
+            <td>{{ item.start_time }} - {{ item.end_time }}</td>
+            <td><a href="{% url 'schedule_booking' item.pk %}">Забронировать</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    {% else %}
+    <p>Нет доступного расписания</p>
+    {% endif %}
+{% endblock %}

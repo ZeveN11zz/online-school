@@ -1,16 +1,18 @@
 {% extends 'main.html' %}
 
-{% block title %}Товары в наличии{% endblock %}
+{% block title %}Курсы{% endblock %}
 
 {% block content %}
     {% if object_list.count %}
         <div class="card">
             {% for item in object_list %}
                 <div>
+                    <a href="{% url 'product' item.slug %}">
                     {% if item.image %}
-                        <img src="{{ item.image.url }}" title="{{ item.name }}">
+                        <img class="product__image" src="{{ item.image.url }}" title="{{ item.name }}">
                     {% endif %}
-                    <a href="{% url 'product' item.slug %}">{{ item.name }}</a>
+                    <p class="product__title">{{ item.name }}</p>
+                    </a>
                 </div>
             {% endfor %}
         </div>
